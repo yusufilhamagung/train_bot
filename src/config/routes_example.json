@@ -1,0 +1,11 @@
+[
+  {
+    "origin": "GMR",
+    "destination": "SBY",
+    "departure_date": "2024-12-24",
+    "preferred_departure_time_start": "21:00",
+    "preferred_departure_time_end": "23:00",
+    "max_price": 900000,
+    "min_seats": 2
+  }
+]
