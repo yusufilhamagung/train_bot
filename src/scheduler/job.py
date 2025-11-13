@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import logging
 from datetime import datetime
-from typing import List
+from typing import List, Sequence
 
-from ..config.settings import Settings
-from ..models.ticket import TicketOption
+from ..config.settings import RoutePreference, Settings
+from ..models.ticket import SearchSummary, TicketOption, TrainResult
 from ..notifier import email_notifier
-from ..notifier.telegram import send_telegram_alert
-from ..scraper.search import filter_tickets, format_ticket_table, search_tickets
+from ..notifier.telegram import send_telegram_alert, send_train_results_summary
+from ..scraper.search import filter_tickets, format_ticket_table, search_train_results
 from ..booking.book import maybe_book_ticket
 
 LOGGER = logging.getLogger(__name__)
@@ -25,7 +25,11 @@ async def run_search_once(
 
     all_matches: List[TicketOption] = []
     for route in settings.iter_routes():
-        tickets = await search_tickets(settings, route=route, headless=headless)
+        search_results = await search_train_results(settings, route=route, headless=headless)
+        summary = search_results.summary
+        tickets = search_results.tickets
+        trains = search_results.trains
+        _send_route_summary(summary, trains, settings)
         filtered = filter_tickets(tickets, settings, route=route)
         if filtered:
             LOGGER.info(
@@ -96,6 +100,20 @@ async def watch_loop(settings: Settings, *, headless: bool | None = None) -> Non
                     "Telegram bot token or chat_id is not configured. Skipping Telegram notification."
                 )
         await asyncio.sleep(sleep_seconds)
+
+
+def _send_route_summary(summary: SearchSummary, trains: Sequence[TrainResult], settings: Settings) -> None:
+    if not (settings.telegram_bot_token and settings.telegram_chat_id):
+        return
+    try:
+        send_train_results_summary(
+            token=settings.telegram_bot_token,
+            chat_id=settings.telegram_chat_id,
+            summary=summary,
+            trains=trains,
+        )
+    except Exception as exc:  # noqa: BLE001
+        LOGGER.exception("Telegram train summary failed: %s", exc)
 
 
 async def _dispatch_email_notifications(tickets: List[TicketOption], settings: Settings) -> None:

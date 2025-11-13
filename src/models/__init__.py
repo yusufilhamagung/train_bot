@@ -1,5 +1,5 @@
 """Data models."""
 
-from .ticket import TicketOption
+from .ticket import SearchSummary, TicketOption, TrainResult
 
-__all__ = ["TicketOption"]
+__all__ = ["TicketOption", "TrainResult", "SearchSummary"]

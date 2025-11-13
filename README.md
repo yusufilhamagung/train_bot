@@ -103,6 +103,12 @@ Helpful switches:
 | Email stub | `EMAIL_*` (SMTP host, port, user, password, sender, recipient) | Basic transactional email, ready to swap for your provider. |
 | Auto booking prototype | `AUTO_BOOK_ENABLED=true` plus passenger JSON | Carefully steps through login + booking helpers; stops short of payment for safety. |
 
+### Telegram alert details
+- The bot scrapes the route and travel date labels directly from the KAI page, so the header in Telegram always mirrors the UI (even if you tweak the search manually).
+- Each train card is rendered in a tidy block that shows name/number, origin/destination, the departure label reported by the site, duration, class + subclass, price in Indonesian formatting, and seat/status info.
+- The summary includes total/available/unavailable counts; long runs are auto-split into multiple messages so you never hit the 4096-character Telegram limit.
+- Configure your credentials once via `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID`, then optionally tune the message template by editing `src/notifier/telegram.py`.
+
 ## Respect the Rails
 - Keep `POLLING_INTERVAL_MINUTES` humane; abusing a public ticketing site may violate ToS.
 - Do not bypass captchas, throttles, or payment walls.
